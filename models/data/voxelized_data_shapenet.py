@@ -13,7 +13,7 @@ class VoxelizedDataset(Dataset):
 
 
     def __init__(self, mode, res = 32,  voxelized_pointcloud = False, pointcloud_samples = 3000, data_path = 'shapenet/data/', split_file = 'shapenet/split.npz',
-                 batch_size = 64, num_sample_points = 1024, num_workers = 12, sample_distribution = [1], sample_sigmas = [0.015], **kwargs):
+                 batch_size = 64, num_sample_points = 1024, num_workers = 12, sample_distribution = [1], sample_sigmas = [0.015], voxel_path=None, sample_path=None, **kwargs):
 
         self.sample_distribution = np.array(sample_distribution)
         self.sample_sigmas = np.array(sample_sigmas)
@@ -37,20 +37,46 @@ class VoxelizedDataset(Dataset):
         # compute number of samples per sampling method
         self.num_samples = np.rint(self.sample_distribution * num_sample_points).astype(np.uint32)
 
+        self.voxel_path = voxel_path
+        self.sample_path = sample_path
+
+    def get_voxel_path(self, path):
+        if self.voxelized_pointcloud:
+            return path + '/voxelized_point_cloud_{}res_{}points.npz'.format(self.res, self.pointcloud_samples)
+        else:
+            if self.voxel_path is not None:
+                if os.path.isfile(path):
+                    infilename = os.path.splitext(os.path.split(path)[1])[0]
+                else:
+                    infilename = 'voxelization'
+                return os.path.join(self.voxel_path, f'{infilename}_{self.res}.npy')
+            else:
+                return path + '/voxelization_{}.npy'.format(self.res)
+    
+    def get_boundary_sample_path(self, path, sigma):
+        if self.sample_path is not None:
+            if os.path.isfile(path):
+                infilename = os.path.splitext(os.path.split(path)[1])[0]
+            else:
+                infilename = 'boundary' 
+            return os.path.join(self.voxel_path, f'{infilename}_{sigma}_samples.npz')
+        else:
+            return path + '/boundary_{}_samples.npz'.format(sigma)
+
 
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
-        path = self.path + self.data[idx]
-
+        path = os.path.join(self.path,self.data[idx])
+        voxel_path = self.get_voxel_path(path)
+        
         if not self.voxelized_pointcloud:
-            occupancies = np.load(path + '/voxelization_{}.npy'.format(self.res))
+            occupancies = np.load(voxel_path)
             occupancies = np.unpackbits(occupancies)
             input = np.reshape(occupancies, (self.res,)*3)
         else:
-            voxel_path = path + '/voxelized_point_cloud_{}res_{}points.npz'.format(self.res, self.pointcloud_samples)
             occupancies = np.unpackbits(np.load(voxel_path)['compressed_occupancies'])
             input = np.reshape(occupancies, (self.res,)*3)
 
@@ -59,7 +85,7 @@ class VoxelizedDataset(Dataset):
         occupancies = []
 
         for i, num in enumerate(self.num_samples):
-            boundary_samples_path = path + '/boundary_{}_samples.npz'.format(self.sample_sigmas[i])
+            boundary_samples_path = self.get_boundary_sample_path(path, self.sample_sigmas[i])
             boundary_samples_npz = np.load(boundary_samples_path)
             boundary_sample_points = boundary_samples_npz['points']
             boundary_sample_coords = boundary_samples_npz['grid_coords']

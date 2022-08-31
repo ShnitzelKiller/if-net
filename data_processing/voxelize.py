@@ -21,7 +21,7 @@ def voxelize(in_path, res, outpath=None):
         
         if outpath is None:
             outpath = in_path
-        filename = os.path.join(outpath, f'{infilename}_{res}.npy'.format(res))
+        filename = os.path.join(outpath, f'{infilename}_{res}.npy')
 
         if os.path.exists(filename):
             return
