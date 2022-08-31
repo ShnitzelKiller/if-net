@@ -7,15 +7,19 @@ from glob import glob
 import numpy as np
 
 class Generator(object):
-    def __init__(self, model, threshold, exp_name, checkpoint = None, device = torch.device("cuda"), resolution = 16, batch_points = 1000000):
+    def __init__(self, model, threshold, exp_name, checkpoint = None, device = torch.device("cuda"), resolution = 16, batch_points = 1000000, weights_file=None):
         self.model = model.to(device)
         self.model.eval()
         self.threshold = threshold
         self.device = device
         self.resolution = resolution
         self.resolution = resolution
-        self.checkpoint_path = os.path.dirname(__file__) + '/../experiments/{}/checkpoints/'.format( exp_name)
-        self.load_checkpoint(checkpoint)
+        if weights_file is not None:
+            state_dict = torch.load(weights_file)
+            self.model.load_state_dict(state_dict['model_state_dict'])
+        else:
+            self.checkpoint_path = os.path.dirname(__file__) + '/../experiments/{}/checkpoints/'.format( exp_name)
+            self.load_checkpoint(checkpoint)
         self.batch_points = batch_points
 
         self.min = -0.5

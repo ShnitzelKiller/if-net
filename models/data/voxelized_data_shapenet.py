@@ -59,7 +59,7 @@ class VoxelizedDataset(Dataset):
                 infilename = os.path.splitext(os.path.split(path)[1])[0]
             else:
                 infilename = 'boundary' 
-            return os.path.join(self.voxel_path, f'{infilename}_{sigma}_samples.npz')
+            return os.path.join(self.sample_path, f'{infilename}_{sigma}_samples.npz')
         else:
             return path + '/boundary_{}_samples.npz'.format(sigma)
 

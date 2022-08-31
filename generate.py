@@ -14,8 +14,8 @@ parser.add_argument('-pointcloud', dest='pointcloud', action='store_true')
 parser.add_argument('-voxels', dest='pointcloud', action='store_false')
 parser.set_defaults(pointcloud=False)
 parser.add_argument('-pc_samples' , default=3000, type=int)
-parser.add_argument('-dist','--sample_distribution', default=[0.5,0.5], nargs='+', type=float)
-parser.add_argument('-std_dev','--sample_sigmas',default=[], nargs='+', type=float)
+parser.add_argument('-dist','--sample_distribution', default=[1], nargs='+', type=float)
+parser.add_argument('-std_dev','--sample_sigmas',default=[.01], nargs='+', type=float)
 parser.add_argument('-res' , default=32, type=int)
 parser.add_argument('-decoder_hidden_dim' , default=256, type=int)
 parser.add_argument('-mode' , default='test', type=str)
@@ -23,6 +23,10 @@ parser.add_argument('-retrieval_res' , default=256, type=int)
 parser.add_argument('-checkpoint', type=int)
 parser.add_argument('-batch_points', default=1000000, type=int)
 parser.add_argument('-m','--model' , default='LocNet', type=str)
+parser.add_argument('-weights_file', type=str, default=None)
+parser.add_argument('-voxel_path',type=str, default=None)
+parser.add_argument('-sample_path',type=str, default=None)
+parser.add_argument('-splits_file',type=str, default='shapenet/split.npz')
 
 args = parser.parse_args()
 
@@ -46,7 +50,7 @@ if args.model == 'SVR':
 
 
 dataset = voxelized_data.VoxelizedDataset(args.mode, voxelized_pointcloud= args.pointcloud , pointcloud_samples= args.pc_samples, res=args.res, sample_distribution=args.sample_distribution,
-                                          sample_sigmas=args.sample_sigmas ,num_sample_points=100, batch_size=1, num_workers=0)
+                                          sample_sigmas=args.sample_sigmas ,num_sample_points=100, batch_size=1, num_workers=0, sample_path=args.sample_path, voxel_path=args.voxel_path, split_file=args.splits_file)
 
 
 exp_name = 'i{}_dist-{}sigmas-{}v{}_m{}'.format(  'PC' + str(args.pc_samples) if args.pointcloud else 'Voxels',
@@ -55,7 +59,7 @@ exp_name = 'i{}_dist-{}sigmas-{}v{}_m{}'.format(  'PC' + str(args.pc_samples) if
                                                                 args.res,args.model)
 
 
-gen = Generator(net,0.5, exp_name, checkpoint=args.checkpoint ,resolution=args.retrieval_res, batch_points=args.batch_points)
+gen = Generator(net,0.5, exp_name, checkpoint=args.checkpoint ,resolution=args.retrieval_res, batch_points=args.batch_points, weights_file=args.weights_file)
 
 out_path = 'experiments/{}/evaluation_{}_@{}/'.format(exp_name,args.checkpoint, args.retrieval_res)
 
