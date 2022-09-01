@@ -27,6 +27,7 @@ parser.add_argument('-weights_file', type=str, default=None)
 parser.add_argument('-voxel_path',type=str, default=None)
 parser.add_argument('-sample_path',type=str, default=None)
 parser.add_argument('-splits_file',type=str, default='shapenet/split.npz')
+parser.add_argument('-device', type=str, choices=['cpu', 'cuda'], default='cuda')
 
 args = parser.parse_args()
 
@@ -59,7 +60,7 @@ exp_name = 'i{}_dist-{}sigmas-{}v{}_m{}'.format(  'PC' + str(args.pc_samples) if
                                                                 args.res,args.model)
 
 
-gen = Generator(net,0.5, exp_name, checkpoint=args.checkpoint ,resolution=args.retrieval_res, batch_points=args.batch_points, weights_file=args.weights_file)
+gen = Generator(net,0.5, exp_name, checkpoint=args.checkpoint ,resolution=args.retrieval_res, batch_points=args.batch_points, weights_file=args.weights_file, device=args.device)
 
 out_path = 'experiments/{}/evaluation_{}_@{}/'.format(exp_name,args.checkpoint, args.retrieval_res)
 

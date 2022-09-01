@@ -10,27 +10,19 @@ import voxels
 import argparse
 import pathlib
 import operator
+from data_processing.util import get_name_and_paths
 
 
 def voxelize(in_path, res, outpath=None):
     try:
-        if os.path.isfile(in_path):
-            infilename = os.path.splitext(os.path.split(in_path)[1])[0]
-        else:
-            infilename = 'voxelization'
+        infilename, in_path, outpath = get_name_and_paths(in_path, outpath)
         
-        if outpath is None:
-            outpath = in_path
         filename = os.path.join(outpath, f'{infilename}_{res}.npy')
-
-        if os.path.exists(filename):
+        if os.path.exists(filename) and not args.replace:
             return
 
-        if os.path.isdir(in_path):
-            in_path = os.path.join(in_path, '/isosurf_scaled.off')
-
         mesh = trimesh.load(in_path, process=False)
-        occupancies = voxels.VoxelGrid.from_mesh(mesh, res, loc=[0, 0, 0], scale=1).data
+        occupancies = voxels.VoxelGrid.from_mesh(mesh, res, loc=[0, 0, 0], scale=args.scale).data
         occupancies = np.reshape(occupancies, -1)
 
         if not occupancies.any():
@@ -53,6 +45,8 @@ if __name__ == '__main__':
     parser.add_argument('--root', type=str, default='shapenet/data')
     parser.add_argument('--depth',type=int, default=3)
     parser.add_argument('--outpath',type=str, default=None)
+    parser.add_argument('--replace', action='store_true')
+    parser.add_argument('--scale',type=float, default=1)
 
     args = parser.parse_args()
 
