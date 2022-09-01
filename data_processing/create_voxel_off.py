@@ -12,10 +12,12 @@ import operator
 
 
 def create_voxel_off(path):
-    name, in_path, out_path = get_name_and_paths(path, args.outpath)
+    name, in_path, out_path = get_name_and_paths(path, args.voxpath)
+
+    off_dir = out_path if args.outpath is None else args.outpath
 
     voxel_path = os.path.join(out_path, f'{name}_{res}.npy')
-    off_path = os.path.join(out_path, f'{name}_{res}.off')
+    off_path = os.path.join(off_dir, f'{name}_{res}.off')
 
 
     if unpackbits:
@@ -44,13 +46,21 @@ if __name__ == '__main__':
     parser.add_argument('-res', type=int)
     parser.add_argument('-root', type=str, default='shapenet/data')
     parser.add_argument('-depth',type=int, default=3)
+    parser.add_argument('-voxpath',type=str, default=None)
     parser.add_argument('-outpath',type=str, default=None)
+    parser.add_argument('-split', type=str, default=None)
+    parser.add_argument('-mode',type=str, choices=['train','test','val'])
 
     args = parser.parse_args()
 
-    ROOT = pathlib.Path(args.root)
-    path = pathlib.Path('*')
-    path = reduce(operator.truediv, (path for _ in range(args.depth)))
+    if args.split is not None:
+        split = np.load(args.split)
+        paths = split[args.mode]
+    else:
+        ROOT = pathlib.Path(args.root)
+        path = pathlib.Path('*')
+        path = reduce(operator.truediv, (path for _ in range(args.depth)))
+        paths = glob.glob( str(ROOT / path))
 
     unpackbits = True
     res = args.res
@@ -58,4 +68,4 @@ if __name__ == '__main__':
     max = 0.5
 
     p = Pool(mp.cpu_count())
-    p.map(create_voxel_off, glob.glob( str(ROOT / path)))
+    p.map(create_voxel_off, paths)
