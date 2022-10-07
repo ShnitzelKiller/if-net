@@ -47,6 +47,7 @@ if __name__ == '__main__':
     parser.add_argument('--outpath',type=str, default=None)
     parser.add_argument('--replace', action='store_true')
     parser.add_argument('--scale',type=float, default=1)
+    parser.add_argument('--extension',type=str,default=None)
 
     args = parser.parse_args()
 
@@ -54,6 +55,8 @@ if __name__ == '__main__':
 
     path = pathlib.Path('*')
     path = reduce(operator.truediv, (path for _ in range(args.depth)))
+    if args.extension is not None:
+        path = path.with_suffix(args.extension)
 
     p = Pool(mp.cpu_count())
     p.map(partial(voxelize, res=args.res, outpath=args.outpath), glob.glob( str(ROOT / path)))
