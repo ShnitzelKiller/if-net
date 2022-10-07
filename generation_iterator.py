@@ -11,7 +11,7 @@ from multiprocessing import Pool
 
 
 # def gen_iterator(out_path, dataset, gen_p , buff_p, start,end):
-def gen_iterator(out_path, dataset, gen_p):
+def gen_iterator(out_path, dataset, gen_p, replace=False):
 
     global gen
     gen = gen_p
@@ -32,7 +32,7 @@ def gen_iterator(out_path, dataset, gen_p):
         export_path = out_path + '/generation/{}/{}/'.format(path.split(os.sep)[-2], path.split(os.sep)[-1])
 
 
-        if os.path.exists(export_path):
+        if os.path.exists(export_path) and not replace:
             print('Path exists - skip! {}'.format(export_path))
             continue
 

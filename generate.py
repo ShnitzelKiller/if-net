@@ -28,6 +28,7 @@ parser.add_argument('-voxel_path',type=str, default=None)
 parser.add_argument('-sample_path',type=str, default=None)
 parser.add_argument('-splits_file',type=str, default='shapenet/split.npz')
 parser.add_argument('-device', type=str, choices=['cpu', 'cuda'], default='cuda')
+parser.add_argument('-replace',action='store_true')
 
 args = parser.parse_args()
 
@@ -65,4 +66,4 @@ gen = Generator(net,0.5, exp_name, checkpoint=args.checkpoint ,resolution=args.r
 out_path = 'experiments/{}/evaluation_{}_@{}/'.format(exp_name,args.checkpoint, args.retrieval_res)
 
 
-gen_iterator(out_path, dataset, gen)
+gen_iterator(out_path, dataset, gen, replace=args.replace)
