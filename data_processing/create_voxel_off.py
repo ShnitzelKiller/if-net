@@ -16,21 +16,24 @@ def create_voxel_off(path):
 
     off_dir = out_path if args.outpath is None else args.outpath
 
-    voxel_path = os.path.join(out_path, f'{name}_{res}.npy')
-    off_path = os.path.join(off_dir, f'{name}_{res}.off')
+    try:
+        voxel_path = os.path.join(out_path, f'{name}.npy')
+        off_path = os.path.join(off_dir, f'{name}.off')
 
 
-    if unpackbits:
-        occ = np.unpackbits(np.load(voxel_path))
-        voxels = np.reshape(occ, (res,)*3)
-    else:
-        voxels = np.reshape(np.load(voxel_path)['occupancies'], (res,)*3)
+        if unpackbits:
+            occ = np.unpackbits(np.load(voxel_path))
+            voxels = np.reshape(occ, (res,)*3)
+        else:
+            voxels = np.reshape(np.load(voxel_path)['occupancies'], (res,)*3)
 
-    loc = ((min+max)/2, )*3
-    scale = max - min
+        loc = ((min+max)/2, )*3
+        scale = max - min
 
-    VoxelGrid(voxels, loc, scale).to_mesh().export(off_path)
-    print('Finished: {}'.format(path))
+        VoxelGrid(voxels, loc, scale).to_mesh().export(off_path)
+        print('Finished: {}'.format(path))
+    except FileNotFoundError as e:
+        print(e)
 
 
 
@@ -46,6 +49,7 @@ if __name__ == '__main__':
     parser.add_argument('-res', type=int)
     parser.add_argument('-root', type=str, default='shapenet/data')
     parser.add_argument('-depth',type=int, default=3)
+    parser.add_argument('-count',type=int, default=-1)
     parser.add_argument('-voxpath',type=str, default=None)
     parser.add_argument('-outpath',type=str, default=None)
     parser.add_argument('-split', type=str, default=None)
@@ -67,5 +71,6 @@ if __name__ == '__main__':
     min = -0.5
     max = 0.5
 
+    paths = paths if args.count < 0 else paths[:args.count]
     p = Pool(mp.cpu_count())
     p.map(create_voxel_off, paths)
